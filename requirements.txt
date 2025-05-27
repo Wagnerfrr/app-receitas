@@ -1,0 +1,9 @@
+
+Flask
+Flask-Login
+Werkzeug
+google-generativeai
+
+WeasyPrint
+
+gunicorn

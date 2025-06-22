@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu App de Receitas</title>
+    <style>
+        /* Estilos básicos inspirados no Gamma App e no mockup */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+            background-color: #f8f9fa; /* Fundo claro */
+        }
+
+        #sidebar {
+            width: 250px;
+            background-color: #e9ecef; /* Cinza claro para sidebar */
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0; /* Impede que a sidebar encolha */
+        }
+
+        #sidebar h2 {
+            margin-top: 0;
+            color: #343a40;
+            font-size: 1.4em;
+            border-bottom: 1px solid #ced4da;
+            padding-bottom: 10px;
+        }
+
+        #sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+            overflow-y: auto; /* Scroll se categorias forem muitas */
+        }
+
+        #sidebar ul li a {
+            display: block;
+            padding: 10px 15px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        #sidebar ul li a:hover,
+        #sidebar ul li a.active {
+            background-color: #dee2e6; /* Destaque ao passar o mouse/ativo */
+            color: #212529;
+        }
+
+        #sidebar .subcategories {
+            list-style: none;
+            padding-left: 20px; /* Indentação para subcategorias */
+            margin-top: 5px;
+            display: none; /* Escondido por padrão */
+        }
+         #sidebar li.active .subcategories {
+            display: block; /* Mostra subcategorias do item ativo */
+        }
+
+        #sidebar .subcategories li a {
+             padding: 8px 15px;
+             font-size: 0.9em;
+        }
+
+        #main-content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto; /* Permite scroll se o conteúdo for grande */
+        }
+
+        .top-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        #search-bar {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        
+        #download-pdf-btn {
+            background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+            white-space: nowrap;
+        }
+        
+        #download-pdf-btn:hover {
+            opacity: 0.9;
+        }
+        
+        #download-pdf-btn:active {
+            transform: scale(0.97);
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.2);
+        }
+
+        #recipe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Grid responsivo */
+            gap: 25px;
+        }
+
+        .recipe-card {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer; /* Indica que o card é clicável */
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+        }
+
+        .recipe-card img {
+            width: 100%;
+            height: 180px; /* Altura fixa para imagem */
+            object-fit: cover; /* Garante que a imagem cubra a área */
+            background-color: #eee; /* Placeholder color */
+        }
+
+        .recipe-card-content {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .recipe-card h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            color: #343a40;
+        }
+
+        .recipe-card p {
+            font-size: 0.9em;
+            color: #6c757d;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            flex-grow: 1;
+            /* Limita descrição a 3 linhas */
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .recipe-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+            padding-top: 10px;
+            margin-top: auto; /* Empurra o rodapé para baixo */
+        }
+
+        .recipe-card-footer .icons span {
+            margin-left: 15px;
+            cursor: pointer;
+        }
+         .recipe-card-footer .icons .favorite {
+             font-size: 1.3em; /* Coração maior */
+             transition: color 0.2s ease;
+         }
+         .recipe-card-footer .icons .favorite.active {
+             color: #ff6b6b; /* Cor para favorito ativo */
+         }
+
+        /* Estilos para Logout */
+        #logout-link {
+            margin-top: auto; /* Empurra para o final da sidebar */
+            padding: 10px 15px;
+            color: #dc3545; /* Vermelho para logout */
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+        }
+        #logout-link:hover {
+             background-color: #f1b0b7;
+             border-color: #ee9a9a;
+        }
+
+        /* Modal Simples para Detalhes da Receita */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto; /* 10% from the top and centered */
+            padding: 30px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+            max-width: 700px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+        }
+        #modal-recipe-content {
+            white-space: pre-wrap; /* Preserva quebras de linha do texto da receita */
+            max-height: 60vh;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h2>Categorias</h2>
+        <ul id="category-list">
+            <!-- Categorias e subcategorias carregadas dinamicamente -->
+        </ul>
+        <a id="logout-link">Logout</a>
+    </div>
+
+    <div id="main-content">
+        <div class="top-controls">
+            <input type="text" id="search-bar" placeholder="Buscar receitas por nome ou texto...">
+            <button id="download-pdf-btn">Baixar PDF</button>
+        </div>
+        <div id="recipe-grid">
+            <!-- Cards de receita carregados dinamicamente -->
+        </div>
+    </div>
+
+    <!-- Modal para Detalhes da Receita -->
+    <div id="recipe-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2 id="modal-recipe-title">Título da Receita</h2>
+        <div id="modal-recipe-content">
+          <p>Conteúdo completo da receita aqui...</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const categoryList = document.getElementById("category-list");
+            const recipeGrid = document.getElementById("recipe-grid");
+            const searchBar = document.getElementById("search-bar");
+            const logoutLink = document.getElementById("logout-link");
+            const modal = document.getElementById("recipe-modal");
+            const modalTitle = document.getElementById("modal-recipe-title");
+            const modalContent = document.getElementById("modal-recipe-content");
+            const closeButton = document.querySelector(".close-button");
+
+            let allFetchedRecipes = []; // Armazena todas as receitas da categoria/sub selecionada
+            let favorites = JSON.parse(localStorage.getItem("favoriteRecipes")) || [];
+
+            // --- Carregar Categorias e Subcategorias ---
+            function loadCategories() {
+                fetch("/categories")
+                    .then(response => response.json())
+                    .then(data => {
+                        categoryList.innerHTML = ""; // Limpa a lista
+                        // Adiciona "Todas as Receitas"
+                        const allItem = document.createElement("li");
+                        const allLink = document.createElement("a");
+                        allLink.href = "#";
+                        allLink.textContent = "Todas as Receitas";
+                        allLink.dataset.category = "all";
+                        allLink.classList.add("active"); // Começa ativo
+                        allItem.appendChild(allLink);
+                        categoryList.appendChild(allItem);
+
+                        Object.entries(data).forEach(([category, subcategories]) => {
+                            const categoryItem = document.createElement("li");
+                            const categoryLink = document.createElement("a");
+                            categoryLink.href = "#";
+                            categoryLink.textContent = category;
+                            categoryLink.dataset.category = category;
+                            categoryItem.appendChild(categoryLink);
+
+                            if (subcategories && subcategories.length > 0 && subcategories.some(sub => sub !== "Geral")) {
+                                const subList = document.createElement("ul");
+                                subList.classList.add("subcategories");
+                                subList.dataset.parentCategory = category;
+                                // Adiciona link para a categoria geral primeiro
+                                const generalSubItem = document.createElement("li");
+                                const generalSubLink = document.createElement("a");
+                                generalSubLink.href = "#";
+                                generalSubLink.textContent = "Ver Todas"; // Ou "Geral"
+                                generalSubLink.dataset.category = category;
+                                generalSubLink.dataset.subcategory = ""; // Vazio para pegar todas da categoria
+                                generalSubItem.appendChild(generalSubLink);
+                                subList.appendChild(generalSubItem);
+                                // Adiciona outras subcategorias
+                                subcategories.forEach(sub => {
+                                    if (sub !== "Geral") { // Não mostra "Geral" explicitamente se houver outras
+                                        const subItem = document.createElement("li");
+                                        const subLink = document.createElement("a");
+                                        subLink.href = "#";
+                                        subLink.textContent = sub;
+                                        subLink.dataset.category = category;
+                                        subLink.dataset.subcategory = sub;
+                                        subItem.appendChild(subLink);
+                                        subList.appendChild(subItem);
+                                    }
+                                });
+                                categoryItem.appendChild(subList);
+                            }
+                            categoryList.appendChild(categoryItem);
+                        });
+                        addCategoryEventListeners();
+                        loadRecipes(); // Carrega todas as receitas inicialmente
+                    })
+                    .catch(error => console.error("Erro ao carregar categorias:", error));
+            }
+
+            // --- Função para Carregar Receitas ---
+            function loadRecipes(category = null, subcategory = null) {
+                let url = "/recipes"; // Default: todas as receitas
+                if (category && category !== "all") {
+                    if (subcategory) {
+                        url = `/recipes/${encodeURIComponent(category)}/${encodeURIComponent(subcategory)}`;
+                    } else {
+                        url = `/recipes/${encodeURIComponent(category)}`; // Todas da categoria
+                    }
+                }
+
+                fetch(url)
+                    .then(response => {
+                         if (!response.ok) {
+                            throw new Error(`Erro HTTP: ${response.status}`);
+                         }
+                         return response.json();
+                     })
+                    .then(recipes => {
+                        allFetchedRecipes = recipes; // Armazena para busca/filtro local
+                        displayRecipes(filterRecipes(recipes, searchBar.value));
+                    })
+                    .catch(error => {
+                        console.error("Erro ao carregar receitas:", error);
+                        recipeGrid.innerHTML = "<p>Erro ao carregar receitas. Verifique o console.</p>";
+                        allFetchedRecipes = [];
+                    });
+            }
+
+            // --- Função para Filtrar Receitas (Busca Local) ---
+            function filterRecipes(recipes, searchTerm) {
+                if (!searchTerm) {
+                    return recipes; // Sem busca, retorna todas
+                }
+                const lowerSearch = searchTerm.toLowerCase();
+                return recipes.filter(recipe => {
+                    const titleMatch = recipe.title.toLowerCase().includes(lowerSearch);
+                    const textMatch = recipe.full_text.toLowerCase().includes(lowerSearch);
+                    return titleMatch || textMatch;
+                });
+            }
+
+            // --- Função para Exibir Receitas no Grid ---
+            function displayRecipes(recipes) {
+                recipeGrid.innerHTML = ""; // Limpa o grid
+                if (!recipes || recipes.length === 0) {
+                    recipeGrid.innerHTML = "<p>Nenhuma receita encontrada.</p>";
+                    return;
+                }
+                recipes.forEach(recipe => {
+                    const isFavorite = favorites.includes(recipe.id);
+                    const card = document.createElement("div");
+                    card.classList.add("recipe-card");
+                    card.dataset.recipeId = recipe.id;
+                    // TODO: Usar imagem real se disponível, parsear tempo/dificuldade
+                    card.innerHTML = `
+                        <img src="https://via.placeholder.com/300x180.png?text=${encodeURIComponent(recipe.title)}" alt="${recipe.title}">
+                        <div class="recipe-card-content">
+                            <h3>${recipe.title}</h3>
+                            <p>${recipe.full_text.substring(0, 150)}...</p> <!-- Exibe trecho -->
+                            <div class="recipe-card-footer">
+                                <span>${recipe.category} / ${recipe.subcategory}</span>
+                                <div class="icons">
+                                    <span class="favorite ${isFavorite ? 'active' : ''}" data-recipe-id="${recipe.id}">❤</span>
+                                    <!-- <span>⭐</span> Dificuldade -->
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    recipeGrid.appendChild(card);
+                });
+                addCardEventListeners(); // Adiciona listeners aos cards recém-criados
+            }
+
+            // --- Adiciona Listeners aos Links de Categoria/Subcategoria ---
+            function addCategoryEventListeners() {
+                 categoryList.addEventListener("click", (event) => {
+                    if (event.target.tagName === "A") {
+                        event.preventDefault();
+                        const category = event.target.dataset.category;
+                        const subcategory = event.target.dataset.subcategory;
+
+                        // Remove active class de todos e adiciona ao clicado
+                        document.querySelectorAll("#sidebar ul li a.active").forEach(el => el.classList.remove("active"));
+                        document.querySelectorAll("#sidebar li.active").forEach(el => el.classList.remove("active"));
+                        event.target.classList.add("active");
+                        if (event.target.closest("li")) {
+                             event.target.closest("li").classList.add("active");
+                        }
+
+                        loadRecipes(category, subcategory);
+                        searchBar.value = ""; // Limpa busca ao mudar categoria
+                    }
+                });
+            }
+
+            // --- Adiciona Listeners aos Cards (Favoritos e Detalhes) ---
+            function addCardEventListeners() {
+                recipeGrid.querySelectorAll(".favorite").forEach(favIcon => {
+                    favIcon.addEventListener("click", (event) => {
+                        event.stopPropagation(); // Impede que o clique no ícone abra o modal
+                        const recipeId = event.target.dataset.recipeId;
+                        toggleFavorite(recipeId, event.target);
+                    });
+                });
+                 recipeGrid.querySelectorAll(".recipe-card").forEach(card => {
+                    card.addEventListener("click", (event) => {
+                         // Não abre modal se clicou no favorito
+                         if (event.target.classList.contains('favorite')) return;
+                         const recipeId = card.dataset.recipeId;
+                         showRecipeDetails(recipeId);
+                    });
+                });
+            }
+
+            // --- Função para Alternar Favorito ---
+            function toggleFavorite(recipeId, iconElement) {
+                const index = favorites.indexOf(recipeId);
+                if (index > -1) {
+                    favorites.splice(index, 1); // Remove dos favoritos
+                    iconElement.classList.remove("active");
+                } else {
+                    favorites.push(recipeId); // Adiciona aos favoritos
+                    iconElement.classList.add("active");
+                }
+                localStorage.setItem("favoriteRecipes", JSON.stringify(favorites));
+            }
+
+            // --- Função para Mostrar Detalhes da Receita no Modal ---
+            function showRecipeDetails(recipeId) {
+                const recipe = allFetchedRecipes.find(r => r.id === recipeId);
+                if (recipe) {
+                    modalTitle.textContent = recipe.title;
+                    modalContent.textContent = recipe.full_text;
+                    modal.style.display = "block";
+                } else {
+                    console.error("Receita não encontrada para o ID:", recipeId);
+                }
+            }
+
+            // --- Event Listener da Barra de Busca ---
+            searchBar.addEventListener("input", () => {
+                console.log("Buscando por:", searchBar.value);
+                console.log("Total de receitas disponíveis:", allFetchedRecipes.length);
+                const filteredRecipes = filterRecipes(allFetchedRecipes, searchBar.value);
+                console.log("Receitas encontradas:", filteredRecipes.length);
+                displayRecipes(filteredRecipes);
+            });
+
+            // --- Event Listener do Botão de Fechar Modal ---
+            closeButton.addEventListener("click", () => {
+                modal.style.display = "none";
+            });
+
+            // --- Fecha Modal se clicar fora do conteúdo ---
+            window.addEventListener("click", (event) => {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            });
+
+            // --- Event Listener do Logout ---
+            logoutLink.addEventListener("click", (event) => {
+                event.preventDefault();
+                fetch("/logout")
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data.message);
+                        window.location.href = "/login"; // Redireciona para a página de login
+                    })
+                    .catch(error => console.error("Erro no logout:", error));
+            });
+
+            // --- Event Listener do Botão de Download PDF ---
+            document.getElementById("download-pdf-btn").addEventListener("click", () => {
+                // Determina quais receitas estão sendo visualizadas atualmente
+                const currentCategory = document.querySelector("#category-list a.active")?.dataset.category || "all";
+                const currentSubcategory = document.querySelector("#category-list a.active")?.dataset.subcategory || "";
+                
+                // Constrói a URL para o endpoint de geração de PDF
+                let pdfUrl = "/generate_pdf?";
+                
+                if (currentCategory !== "all") {
+                    pdfUrl += `category=${encodeURIComponent(currentCategory)}`;
+                    if (currentSubcategory) {
+                        pdfUrl += `&subcategory=${encodeURIComponent(currentSubcategory)}`;
+                    }
+                }
+                
+                // Adiciona os IDs de favoritos se necessário
+                if (favorites.length > 0) {
+                    favorites.forEach(favId => {
+                        pdfUrl += `&favorites[]=${encodeURIComponent(favId)}`;
+                    });
+                }
+                
+                console.log("Gerando PDF com URL:", pdfUrl);
+                
+                // Abre em uma nova aba para download
+                window.open(pdfUrl, '_blank');
+            });
+
+            // --- Inicialização ---
+            loadCategories();
+
+        });
+    </script>
+</body>
+</html>
+
